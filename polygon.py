@@ -20,20 +20,32 @@ class Polygon:
     Represents a polygon defined by a set of points and a color.
     """
 
-    def __init__(self, max_dims):
+    def __init__(self, max_dims, points=None, color=None):
+        """
+        Args:
+            max_dims (int): maximum coordinates where a polygon point may be placed.
+            points (set): set of tuples defining the coordinates of polygon points.
+            color (tuple): RGB value representing the color of the polygon.
+        """
         self.max_x = max_dims[0]
         self.max_y = max_dims[1]
         self.num_points = 3 # all polygons will be triangles for now
+        self.points = []
 
-        points = []
+        self.points = points if points else self.random_points()
+        self.color = color if color else self.set_color()
+
+    def random_points(self):
+        """
+        Generate a set of random points.
+        """
         for i in range(self.num_points):
-            points.append(self.set_point())
+            self.points.append(self.set_point())
         # connect the points (will be necessary when polygons with 4+ sides are allowed)
-        self.color = self.set_color()
 
     def set_point(self):
         """
-        Get a random point within constraints.
+        Create a random point within constraints.
 
         Parameters:
             (none)
