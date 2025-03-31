@@ -8,9 +8,10 @@ NOTES:
 For simplicity, initially the following will be fixed:
     - generation size: 1000
 
+Possibly merge class into genetic_algorithm.py and represent as a list.
 """
 
-from Individual import Individual
+from individual import Individual
 
 class Population:
     """
