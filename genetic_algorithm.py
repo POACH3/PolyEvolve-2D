@@ -2,10 +2,17 @@
 genetic_algorithm.py
 
 Genetic Algorithm implementation on images where semi-transparent colored polygons are the genes.
+
+NOTES:
+    Fitness function is MSE to start, but eventually will account for curved color space.
+    Consider converting to NumPy array for fitness measurement.
+
 """
 
-from random import randint
+import numpy as np
 
+from random import randint
+from image_renderer import ImageRenderer
 from individual import Individual
 from population import Population
 
@@ -15,6 +22,7 @@ class GeneticAlgorithm:
         self.population_size = 1000
         self.num_generations = 1000
         self.num_genes = 50
+        self.num_elites = 3 # 3 most fit Individuals copied to next generation
         self.population_mutation_rate = .1 # percentage likelihood for an individual to be selected
         self.genome_mutation_rate = .01 # percentage likelihood for a gene to be selected
 
@@ -24,34 +32,146 @@ class GeneticAlgorithm:
         self.generations = [] # all generations containing all individuals
         # add other metrics (individual fitness, average fitness, etc)
 
-    def run(self):
+    def evolve(self):
         # create generation
         self.generations.append(Population(self.target_size)) # random initial generation
 
         for i in range(self.num_generations):
-
-            # measure fitness
             for j in range(self.population_size):
+
                 # measure fitness value and record
-                fitness_score = evaluate_fitness(self.generations[i][j])
+                fitness_score = self.evaluate_fitness_mse(self.generations[i][j])
                 self.generations[i][j].set_fitness(fitness_score)
 
             # reproduce based off fitness values
+            self.generations.append(self.reproduce(self.generations[-1]))
 
             # mutate
+            self.mutate(self.generations[-1])
 
-            #generations.append(next_generation)
-
-
-    def evaluate_fitness(self, individual_evaluated):
+    def evaluate_fitness_abs_diff(self, individual_evaluated):
         """
-        Fitness evaluation functionality used by the genetic algorithm.
-        It will receive an approximation image and a target image, then measure the
-        RGB distance between the two. MSE to start, but eventually will account for
-        curved color space.
-        """
-        pass
+        Fitness evaluation functionality using the sum of absolute
+        differences in RGB space.
+        Measures distances between each corresponding pixel in
+        the approximation and target images.
 
+        Args:
+            individual_evaluated (Individual): The candidate individual to be evaluated.
+
+        Returns:
+            (int): The fitness score (lower is better).
+
+        """
+        total_error = 0
+
+        red_score = 0
+        green_score = 0
+        blue_score = 0
+
+        target_rgb = self.target.convert('RGBA')
+
+        renderer = ImageRenderer()
+        individual_image = renderer.create_image(individual_evaluated)
+        individual_rgb = individual_image.convert('RGBA')
+
+        for x in range(self.target_size[0]):
+            for y in range(self.target_size[1]):
+                target_pixel = target_rgb.getpixel((x,y))
+                target_red, target_green, target_blue, _ = target_pixel
+
+                individual_pixel = individual_rgb.getpixel((x,y))
+                individual_red, individual_green, individual_blue, _ = individual_pixel
+
+                red_score = min(abs(target_red - individual_red), abs(individual_red - target_red))
+                green_score = min(abs(target_green - individual_green), abs(individual_green - target_green))
+                blue_score = min(abs(target_blue - individual_blue), abs(individual_blue - target_blue))
+
+                pixel_score = red_score + green_score + blue_score
+                total_error += pixel_score
+
+        fitness = 1 / (total_error + 1e-6)
+        return fitness
+
+    def evaluate_fitness_mse(self, individual_evaluated):
+        """
+        Fitness evaluation functionality using MSE in RGB space.
+        Calculates the error between each corresponding
+        pixel in the approximation and target images.
+
+        Args:
+            individual_evaluated (Individual): The candidate individual to be evaluated.
+
+        Returns:
+            (int): The fitness score (lower is better).
+
+        """
+        total_score = 0
+
+        width, height = individual_evaluated.size
+        num_pixels = width * height
+
+        target_rgb = self.target.convert('RGBA')
+
+        renderer = ImageRenderer()
+        individual_image = renderer.create_image(individual_evaluated)
+        individual_rgb = individual_image.convert('RGBA')
+
+        for x in range(self.target_size[0]):
+            for y in range(self.target_size[1]):
+                target_pixel = target_rgb.getpixel((x,y))
+                target_red, target_green, target_blue, _ = target_pixel
+
+                individual_pixel = individual_rgb.getpixel((x,y))
+                individual_red, individual_green, individual_blue, _ = individual_pixel
+
+                red_score = (target_red - individual_red) ** 2
+                green_score = (target_green - individual_green) ** 2
+                blue_score = (target_blue - individual_blue) ** 2
+
+                pixel_score = red_score + green_score + blue_score
+                total_score += pixel_score
+
+        average_pixel_score = total_score / num_pixels
+        fitness = 1 / (average_pixel_score + 1e-6)
+        return fitness
+
+    def reproduce(self, population):
+        new_individuals = []
+
+        # select elites
+        population.order_by_fitness()
+        new_individuals.extend(population[0:self.num_elites])
+
+        # crossover based on fitness
+        for i in range(self.population_size - self.num_elites):
+            parent_a = self.select_parent(population)
+            parent_b = self.select_parent(population)
+            while parent_b == parent_a:
+                parent_b = self.select_parent(population)
+
+            parents = [parent_a, parent_b]
+
+            child = self.crossover_two_point(parents)
+            new_individuals.append(child)
+
+        new_generation = Population(new_individuals)
+        return new_generation
+
+    def select_parent(self, population):
+        """
+        Selects a parent probabilistically based on fitness.
+
+        Args:
+            population (Population): The population from which to select a parent.
+        """
+        fitnesses = np.array(individual.fitness for individual in population.individuals)
+        total_population_fitness = fitnesses.sum()
+        probabilities = fitnesses / total_population_fitness
+
+        selected_index = np.random.choice(self.population_size, p=probabilities)
+        parent = population[selected_index]
+        return parent
 
     def crossover_two_point(self, parents):
         """
@@ -64,15 +184,15 @@ class GeneticAlgorithm:
             child genome:       B1, B2, A3, A4, B5, B6
 
         Args:
-            parents (set): An array of parents (max 2 parents allowed).
+            parents (list): A list of parents (max 2 parents allowed).
 
         Returns:
             Individual: A new (child) Individual composed of the genes from the parents.
         """
-        split_index_a = randint(0, self.num_genes - 1)
-        split_index_b = randint(0, self.num_genes - 1)
-        split_index_1 = min(split_index_a, split_index_b)
-        split_index_2 = max(split_index_a, split_index_b)
+        a = randint(0, self.num_genes)
+        b = randint(0, self.num_genes)
+        split_index_1 = min(a, b)
+        split_index_2 = max(a, b)
 
         rand_parent = randint(0, 1)
         parent_1 = parents[rand_parent]
@@ -86,3 +206,12 @@ class GeneticAlgorithm:
 
         child = Individual(self.target_size, genome=new_genome)
         return child
+
+    def mutate(self, population):
+        """
+        Mutates a generation of individuals.
+
+        Args:
+            population (list): A list of individuals.
+        """
+        pass
