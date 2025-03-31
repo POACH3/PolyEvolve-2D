@@ -9,8 +9,8 @@ __pycache__/
 *.py[cod]
 
 # Ignore OS-specific hidden files
-.DS_Store  # macOS
-Thumbs.db  # Windows
+.DS_Store
+Thumbs.db
 
 # Ignore log files and temporary files
 *.log
