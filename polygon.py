@@ -20,12 +20,13 @@ class Polygon:
     Represents a polygon defined by a set of points and a color.
     """
 
-    def __init__(self, max_dim_x, max_dim_y):
-        self.max_dim_x = max_dim_x
-        self.max_dim_y = max_dim_y
+    def __init__(self, max_dims):
+        self.max_x = max_dims[0]
+        self.max_y = max_dims[1]
+        self.num_points = 3 # all polygons will be triangles for now
 
         points = []
-        for i in range(3): # all polygons will be triangles for now
+        for i in range(self.num_points):
             points.append(self.set_point())
         # connect the points (will be necessary when polygons with 4+ sides are allowed)
         self.color = self.set_color()
@@ -40,8 +41,8 @@ class Polygon:
         Returns:
             tuple: A point represented by x and y coordinates.
         """
-        x = randint(0, self.max_dim_x)
-        y = randint(0, self.max_dim_y)
+        x = randint(0, self.max_x)
+        y = randint(0, self.max_y)
 
         point = (x, y)
         return point
@@ -70,3 +71,15 @@ class Polygon:
 
         rgba = (red, green, blue, alpha)
         return rgba
+
+    def mutate(self):
+        """
+        Modifies the Polygon points and color.
+        """
+        new_points = []
+        for i in range(self.num_points):
+            new_points.append(self.set_point())
+        self.points = new_points
+
+        new_color = self.set_color()
+        self.color = new_color
