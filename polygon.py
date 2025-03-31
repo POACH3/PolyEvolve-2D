@@ -20,30 +20,30 @@ class Polygon:
     Represents a polygon defined by a set of points and a color.
     """
 
-    def __init__(self, max_dims, points=None, color=None):
+    def __init__(self, max_dims, vertices=None, color=None):
         """
         Args:
             max_dims (int): maximum coordinates where a polygon point may be placed.
-            points (set): set of tuples defining the coordinates of polygon points.
+            vertices (set): set of tuples defining the coordinates of polygon points.
             color (tuple): RGB value representing the color of the polygon.
         """
         self.max_x = max_dims[0]
         self.max_y = max_dims[1]
-        self.num_points = 3 # all polygons will be triangles for now
-        self.points = []
+        self.num_vertices = 3 # all polygons will be triangles for now
+        self.vertices = []
 
-        self.points = points if points else self.random_points()
+        self.vertices = vertices if vertices else self.random_vertices()
         self.color = color if color else self.set_color()
 
-    def random_points(self):
+    def random_vertices(self):
         """
         Generate a set of random points.
         """
-        for i in range(self.num_points):
-            self.points.append(self.set_point())
+        for i in range(self.num_vertices):
+            self.vertices.append(self.set_vertex())
         # connect the points (will be necessary when polygons with 4+ sides are allowed)
 
-    def set_point(self):
+    def set_vertex(self):
         """
         Create a random point within constraints.
 
@@ -63,12 +63,12 @@ class Polygon:
         """
         Connect all points with edges that don't cross.
         """
-        return
+        pass
 
     def set_color(self):
         """
         Get random a random color.
-        RGBA format is used with opacity fixed at 50%.
+        RGBA format is used with opacity fixed.
 
         Parameters:
             (none)
@@ -79,7 +79,7 @@ class Polygon:
         red = randint(0, 255)
         green = randint(0, 255)
         blue = randint(0, 255)
-        alpha = .5
+        alpha = 30 # 255 is opaque
 
         rgba = (red, green, blue, alpha)
         return rgba
@@ -89,9 +89,9 @@ class Polygon:
         Modifies the Polygon points and color.
         """
         new_points = []
-        for i in range(self.num_points):
-            new_points.append(self.set_point())
-        self.points = new_points
+        for i in range(self.num_vertices):
+            new_points.append(self.set_vertex())
+        self.vertices = new_points
 
         new_color = self.set_color()
         self.color = new_color
