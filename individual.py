@@ -17,7 +17,7 @@ Gene mutation options:
 """
 
 from random import randint
-from Polygon import Polygon
+from polygon import Polygon
 
 class Individual:
     """
@@ -35,9 +35,8 @@ class Individual:
 
     def mutate(self):
         """
-        Modifies a random polygon from the genome.
+        Modifies a random gene (Polygon) in the genome (Individual).
         """
-
         gene_num = randint(0, self.num_genes - 1)
 
         # mutate gene
@@ -47,6 +46,3 @@ class Individual:
         # replace gene (mutate genome)
         self.genome.pop(gene_num)
         self.genome.insert(gene_num, Polygon(self.max_dims))
-
-
-
