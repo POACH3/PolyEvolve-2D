@@ -24,16 +24,21 @@ class Individual:
     Represents a candidate image defined by a set of Polygons.
     """
 
-    def __init__(self, max_dims):
-        self.max_dims = max_dims
-        self.num_genes = 50
-        self.genome = []
+    def __init__(self, size, genome=None, num_genes=50):
+        self.size = size
+        self.num_genes = num_genes
+        self.fitness_score = -1
 
+        self.genome = genome if genome else self.random_genome()
+
+    def random_genome(self):
+        """
+        Generates a random genome for an individual.
+        """
         for i in range(self.num_genes):
-            polygon = Polygon(max_dims)
+            polygon = Polygon(self.size)
             self.genome.append(polygon)
 
-        self.fitness_score = -1
 
     def mutate(self):
         """
