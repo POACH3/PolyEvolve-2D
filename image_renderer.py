@@ -6,6 +6,7 @@ Also responsible for image I/O and display.
 """
 
 from PIL import Image
+from PIL import ImageDraw
 
 class ImageRenderer:
     def load_image(self, path):
@@ -27,3 +28,21 @@ class ImageRenderer:
 
         """
         return image.show()
+
+    def create_image(self, individual):
+        """
+        Create an image from the given individual using Pillow.
+
+        Parameters:
+            individual (Individual): The individual to be rendered.
+
+        Returns:
+            (Image): The rendered Pillow Image.
+        """
+        image = Image.new("RGBA", individual.size, (0, 0, 0, 255)) # black, opaque background
+        draw = ImageDraw.Draw(image, "RGBA")
+
+        for polygon in individual.genome:
+            draw.polygon(polygon.vertices, fill=polygon.color)
+
+        return image
