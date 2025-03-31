@@ -20,8 +20,12 @@ class Population:
 
     def __init__(self, max_dims):
         self.generation_size = 1000
-        self.individuals = []
+        self.population_fitness_score = -1 # average fitness
 
+        self.individuals = []
         for i in range(self.generation_size):
             individual = Individual(max_dims)
             self.individuals.append(individual)
+
+    def set_fitness(self, average_fitness):
+        self.population_fitness_score = average_fitness

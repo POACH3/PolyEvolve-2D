@@ -33,6 +33,8 @@ class Individual:
             polygon = Polygon(max_dims)
             self.genome.append(polygon)
 
+        self.fitness_score = -1
+
     def mutate(self):
         """
         Modifies a random gene (Polygon) in the genome (Individual).
@@ -46,3 +48,6 @@ class Individual:
         # replace gene (mutate genome)
         self.genome.pop(gene_num)
         self.genome.insert(gene_num, Polygon(self.max_dims))
+
+    def set_fitness(self, fitness_score):
+        self.fitness_score = fitness_score
