@@ -27,7 +27,7 @@ class Individual:
     def __init__(self, size, genome=None, num_genes=50):
         self.size = size
         self.num_genes = num_genes
-        self.fitness_score = -1
+        self.fitness = -1
 
         self.genome = genome if genome else self.random_genome()
 
@@ -35,9 +35,13 @@ class Individual:
         """
         Generates a random genome for an individual.
         """
+        rand_genome = []
+
         for i in range(self.num_genes):
             polygon = Polygon(self.size)
-            self.genome.append(polygon)
+            rand_genome.append(polygon)
+
+        return rand_genome
 
 
     def mutate_gene(self):
@@ -61,4 +65,4 @@ class Individual:
         self.genome.insert(gene_index, Polygon(self.size))
 
     def set_fitness(self, fitness_score):
-        self.fitness_score = fitness_score
+        self.fitness = fitness_score
