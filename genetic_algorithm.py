@@ -33,23 +33,22 @@ class GeneticAlgorithm:
         # add other metrics (individual fitness, average fitness, etc)
 
     def evolve(self):
-        # create generation
         self.generations.append(Population(self.target_size)) # random initial generation
 
-        for i in range(self.num_generations):
-            for j in range(self.population_size):
+        for population in range(self.num_generations):
+            for individual in range(self.population_size):
 
-                # measure fitness value and record
-                fitness_score = self.evaluate_fitness_mse(self.generations[i][j])
-                self.generations[i][j].set_fitness(fitness_score)
+                # measure fitness and record
+                score = self.evaluate_fitness_mse(self.generations[population][individual])
+                self.generations[population][individual].set_fitness(score)
 
-            # reproduce based off fitness values
+            # reproduce based off fitness scores
             self.generations.append(self.reproduce(self.generations[-1]))
 
             # mutate
             self.mutate(self.generations[-1])
 
-    def evaluate_fitness_abs_diff(self, individual_evaluated):
+    def evaluate_fitness_abs_diff(self, individual):
         """
         Fitness evaluation functionality using the sum of absolute
         differences in RGB space.
@@ -57,7 +56,47 @@ class GeneticAlgorithm:
         the approximation and target images.
 
         Args:
-            individual_evaluated (Individual): The candidate individual to be evaluated.
+            individual (Individual): The candidate individual to be evaluated.
+
+        Returns:
+            (int): The fitness score (higher is better).
+
+        """
+        total_error = 0
+
+        target_rgb = self.target.convert('RGBA')
+
+        renderer = ImageRenderer()
+        individual_image = renderer.create_image(individual)
+        individual_rgb = individual_image.convert('RGBA')
+
+        for x in range(self.target_size[0]):
+            for y in range(self.target_size[1]):
+                target_pixel = target_rgb.getpixel((x,y))
+                target_red, target_green, target_blue, _ = target_pixel
+
+                individual_pixel = individual_rgb.getpixel((x,y))
+                individual_red, individual_green, individual_blue, _ = individual_pixel
+
+                red_error = abs(target_red - individual_red)
+                green_error = abs(target_green - individual_green)
+                blue_error = abs(target_blue - individual_blue)
+
+                pixel_error = red_error + green_error + blue_error
+                total_error += pixel_error
+
+        fitness_score = 1 / (total_error + 1e-6)
+        return fitness_score
+
+    def evaluate_fitness_mse(self, individual):
+        """
+        Fitness evaluation functionality using MSE in RGB space.
+        Calculates the error between each corresponding pixel in the
+        approximation and target images by summing the squared errors for
+        each color channel of a pixel, then averaging the result across all pixels.
+
+        Args:
+            individual (Individual): The candidate individual to be evaluated.
 
         Returns:
             (int): The fitness score (lower is better).
@@ -65,56 +104,13 @@ class GeneticAlgorithm:
         """
         total_error = 0
 
-        red_score = 0
-        green_score = 0
-        blue_score = 0
-
-        target_rgb = self.target.convert('RGBA')
-
-        renderer = ImageRenderer()
-        individual_image = renderer.create_image(individual_evaluated)
-        individual_rgb = individual_image.convert('RGBA')
-
-        for x in range(self.target_size[0]):
-            for y in range(self.target_size[1]):
-                target_pixel = target_rgb.getpixel((x,y))
-                target_red, target_green, target_blue, _ = target_pixel
-
-                individual_pixel = individual_rgb.getpixel((x,y))
-                individual_red, individual_green, individual_blue, _ = individual_pixel
-
-                red_score = min(abs(target_red - individual_red), abs(individual_red - target_red))
-                green_score = min(abs(target_green - individual_green), abs(individual_green - target_green))
-                blue_score = min(abs(target_blue - individual_blue), abs(individual_blue - target_blue))
-
-                pixel_score = red_score + green_score + blue_score
-                total_error += pixel_score
-
-        fitness = 1 / (total_error + 1e-6)
-        return fitness
-
-    def evaluate_fitness_mse(self, individual_evaluated):
-        """
-        Fitness evaluation functionality using MSE in RGB space.
-        Calculates the error between each corresponding
-        pixel in the approximation and target images.
-
-        Args:
-            individual_evaluated (Individual): The candidate individual to be evaluated.
-
-        Returns:
-            (int): The fitness score (lower is better).
-
-        """
-        total_score = 0
-
-        width, height = individual_evaluated.size
+        width, height = individual.size
         num_pixels = width * height
 
         target_rgb = self.target.convert('RGBA')
 
         renderer = ImageRenderer()
-        individual_image = renderer.create_image(individual_evaluated)
+        individual_image = renderer.create_image(individual)
         individual_rgb = individual_image.convert('RGBA')
 
         for x in range(self.target_size[0]):
@@ -125,18 +121,22 @@ class GeneticAlgorithm:
                 individual_pixel = individual_rgb.getpixel((x,y))
                 individual_red, individual_green, individual_blue, _ = individual_pixel
 
-                red_score = (target_red - individual_red) ** 2
-                green_score = (target_green - individual_green) ** 2
-                blue_score = (target_blue - individual_blue) ** 2
+                red_error = (target_red - individual_red) ** 2
+                green_error = (target_green - individual_green) ** 2
+                blue_error = (target_blue - individual_blue) ** 2
 
-                pixel_score = red_score + green_score + blue_score
-                total_score += pixel_score
+                pixel_error = red_error + green_error + blue_error
+                total_error += pixel_error
 
-        average_pixel_score = total_score / num_pixels
-        fitness = 1 / (average_pixel_score + 1e-6)
-        return fitness
+        average_pixel_error = total_error / num_pixels
+        fitness_score = 1 / (average_pixel_error + 1e-6)
+        return fitness_score
 
     def reproduce(self, population):
+        """
+        Creates a new generation of Individuals using elites from the
+        last generation and gene crossover.
+        """
         new_individuals = []
 
         # select elites
@@ -164,14 +164,17 @@ class GeneticAlgorithm:
 
         Args:
             population (Population): The population from which to select a parent.
+
+        Returns:
+            (Individual): The selected parent.
         """
         fitnesses = np.array(individual.fitness for individual in population.individuals)
         total_population_fitness = fitnesses.sum()
         probabilities = fitnesses / total_population_fitness
 
         selected_index = np.random.choice(self.population_size, p=probabilities)
-        parent = population[selected_index]
-        return parent
+        selected_parent = population.individuals[selected_index]
+        return selected_parent
 
     def crossover_two_point(self, parents):
         """
@@ -187,7 +190,7 @@ class GeneticAlgorithm:
             parents (list): A list of parents (max 2 parents allowed).
 
         Returns:
-            Individual: A new (child) Individual composed of the genes from the parents.
+            (Individual): A new (child) Individual composed of the genes from the parents.
         """
         a = randint(0, self.num_genes)
         b = randint(0, self.num_genes)
@@ -209,9 +212,18 @@ class GeneticAlgorithm:
 
     def mutate(self, population):
         """
-        Mutates a generation of individuals.
+        Mutates select individuals from a population.
 
         Args:
-            population (list): A list of individuals.
+            population (list): A population of individuals.
+
         """
-        pass
+        num_mutate = int(self.population_mutation_rate * self.population_size)
+        mutate_indices = set()
+
+        while len(mutate_indices) < num_mutate:
+            selected_index = randint(0, self.population_size - 1)
+            mutate_indices.add(selected_index)
+
+        for index in mutate_indices:
+            population[index].mutate_gene()
