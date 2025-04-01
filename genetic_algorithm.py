@@ -10,7 +10,6 @@ NOTES:
 """
 
 import numpy as np
-
 from random import randint
 from image_renderer import ImageRenderer
 from individual import Individual
@@ -19,8 +18,8 @@ from population import Population
 class GeneticAlgorithm:
 
     def __init__(self, target):
-        self.population_size = 1000
-        self.num_generations = 1000
+        self.population_size = 500
+        self.num_generations = 500
         self.num_genes = 50
         self.num_elites = 3 # 3 most fit Individuals copied to next generation
         self.population_mutation_rate = .1 # percentage likelihood for an individual to be selected
@@ -33,14 +32,17 @@ class GeneticAlgorithm:
         # add other metrics (individual fitness, average fitness, etc)
 
     def evolve(self):
-        self.generations.append(Population(self.target_size)) # random initial generation
+        """
+        Runs the genetic algorithm.
+        """
+        self.generations.append(Population(individual_size=self.target_size, population_size=self.population_size)) # random initial generation
 
         for population in range(self.num_generations):
             for individual in range(self.population_size):
 
                 # measure fitness and record
-                score = self.evaluate_fitness_mse(self.generations[population][individual])
-                self.generations[population][individual].set_fitness(score)
+                score = self.evaluate_fitness_mse(self.generations[population].individuals[individual])
+                self.generations[population].individuals[individual].set_fitness(score)
 
             # reproduce based off fitness scores
             self.generations.append(self.reproduce(self.generations[-1]))
@@ -68,7 +70,7 @@ class GeneticAlgorithm:
 
         renderer = ImageRenderer()
         individual_image = renderer.create_image(individual)
-        individual_rgb = individual_image.convert('RGBA')
+        individual_rgb = renderer.convert_image(individual_image)
 
         for x in range(self.target_size[0]):
             for y in range(self.target_size[1]):
@@ -111,7 +113,7 @@ class GeneticAlgorithm:
 
         renderer = ImageRenderer()
         individual_image = renderer.create_image(individual)
-        individual_rgb = individual_image.convert('RGBA')
+        individual_rgb = renderer.convert_image(individual_image)
 
         for x in range(self.target_size[0]):
             for y in range(self.target_size[1]):
@@ -130,18 +132,30 @@ class GeneticAlgorithm:
 
         average_pixel_error = total_error / num_pixels
         fitness_score = 1 / (average_pixel_error + 1e-6)
+        #print(f"{fitness_score}\n")                                                                        #FIXME
         return fitness_score
 
     def reproduce(self, population):
         """
         Creates a new generation of Individuals using elites from the
         last generation and gene crossover.
+
+        Args:
+            population (Population): The current generation of Individuals.
+
+        Returns:
+            (Population): The new generation of Individuals.
         """
         new_individuals = []
 
         # select elites
         population.order_by_fitness()
-        new_individuals.extend(population[0:self.num_elites])
+        new_individuals.extend(population.individuals[:self.num_elites])
+
+        # save image of most fit Individual
+        ir = ImageRenderer()
+        file_name = f"most_fit_gen{len(self.generations)}"
+        ir.save_image(ir.create_image(population.individuals[0]), f"./polyevolve_images/{file_name}.png")
 
         # crossover based on fitness
         for i in range(self.population_size - self.num_elites):
@@ -155,7 +169,7 @@ class GeneticAlgorithm:
             child = self.crossover_two_point(parents)
             new_individuals.append(child)
 
-        new_generation = Population(new_individuals)
+        new_generation = Population(individual_size=self.target_size, individuals=new_individuals)
         return new_generation
 
     def select_parent(self, population):
@@ -168,11 +182,15 @@ class GeneticAlgorithm:
         Returns:
             (Individual): The selected parent.
         """
-        fitnesses = np.array(individual.fitness for individual in population.individuals)
+        fitnesses = np.array([individual.fitness for individual in population.individuals])
+        #print(f"Fitnesses count: {len(fitnesses)}\n\n")                                                          #FIXME
+        #print(f"population count: {len(population.individuals)}\n\n")
         total_population_fitness = fitnesses.sum()
         probabilities = fitnesses / total_population_fitness
+        #print(probabilities)                                                                            #FIXME
 
-        selected_index = np.random.choice(self.population_size, p=probabilities)
+        #selected_index = np.random.choice(self.population_size, p=probabilities)
+        selected_index = np.random.choice(len(population.individuals), p=probabilities)
         selected_parent = population.individuals[selected_index]
         return selected_parent
 
@@ -226,4 +244,4 @@ class GeneticAlgorithm:
             mutate_indices.add(selected_index)
 
         for index in mutate_indices:
-            population[index].mutate_gene()
+            population.individuals[index].mutate_gene()
