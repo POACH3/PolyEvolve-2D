@@ -40,19 +40,25 @@ class Individual:
             self.genome.append(polygon)
 
 
-    def mutate(self):
+    def mutate_gene(self):
         """
-        Modifies a random gene (Polygon) in the genome (Individual).
+        Modifies a random gene (Polygon) in the genome (Individual) by perturbing
+        the vertices and color of a Polygon to a new value within a set radius.
         """
         gene_num = randint(0, self.num_genes - 1)
 
-        # mutate gene
-        #gene = self.genome[gene_num]
-        #gene.mutate()
+        gene = self.genome[gene_num]
+        gene.perturb_vertices()
+        gene.perturb_color()
 
-        # replace gene (mutate genome)
-        self.genome.pop(gene_num)
-        self.genome.insert(gene_num, Polygon(self.max_dims))
+    def replace_gene(self):
+        """
+        Replaces a random gene (Polygon) in the genome (Individual).
+        """
+        gene_index = randint(0, self.num_genes - 1)
+
+        self.genome.pop(gene_index)
+        self.genome.insert(gene_index, Polygon(self.size))
 
     def set_fitness(self, fitness_score):
         self.fitness_score = fitness_score
