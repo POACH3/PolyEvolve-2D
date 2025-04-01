@@ -23,32 +23,34 @@ class Polygon:
     def __init__(self, max_dims, vertices=None, color=None):
         """
         Args:
-            max_dims (int): maximum coordinates where a polygon point may be placed.
-            vertices (set): set of tuples defining the coordinates of polygon points.
+            max_dims (tuple): maximum coordinates where a polygon point may be placed.
+            vertices (list): tuples defining the coordinates of polygon points.
             color (tuple): RGB value representing the color of the polygon.
         """
         self.max_x = max_dims[0]
         self.max_y = max_dims[1]
         self.num_vertices = 3 # all polygons will be triangles for now
-        self.vertices = []
 
-        self.vertices = vertices if vertices else self.random_vertices()
+        self.vertices = vertices if vertices else self.random_points()
         self.color = color if color else self.random_color()
 
-    def random_vertices(self):
+    def random_points(self):
         """
         Generate a set of random points.
         """
-        for i in range(self.num_vertices):
-            self.vertices.append(self.set_vertex())
-        # connect the points (will be necessary when polygons with 4+ sides are allowed)
+        points = []
 
-    def set_vertex(self):
+        for i in range(self.num_vertices):
+            points.append(self.random_point())
+
+        # order vertices (will be necessary when polygons with 4+ sides are allowed)
+        #order_cw(points)
+
+        return points
+
+    def random_point(self):
         """
         Create a random point within constraints.
-
-        Parameters:
-            (none)
 
         Returns:
             tuple: A point represented by x and y coordinates.
@@ -59,7 +61,7 @@ class Polygon:
         point = (x, y)
         return point
 
-    def order_vertices_cw(self):
+    def order_cw(self):
         """
         Puts all the vertices in a clockwise order.
         """
