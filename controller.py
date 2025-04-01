@@ -4,6 +4,8 @@ Orchestrates the genetic algorithm, supporting future MVC structure.
 
 from genetic_algorithm import GeneticAlgorithm
 from image_renderer import ImageRenderer
+from individual import Individual
+
 
 class Controller:
     def __init__(self, target_path, population_size, num_generations):
@@ -37,12 +39,16 @@ if __name__ == "__main__":
     #controller.run()
 
     renderer = ImageRenderer()
-    target = renderer.load_image("majesticUnicorn.jpeg")
-    height, width = target.size
-    renderer.show_image(target)
+    target = renderer.load_image("./majesticUnicorn_smoll.png")
+    #height, width = target.size
+    #renderer.show_image(target)
+
+    #individual = Individual((500,500), num_genes=10)
+    #test_im = renderer.create_image(individual)
+    #renderer.save_image(test_im, "./polyevolve_images/test.png")
 
     gen_alg = GeneticAlgorithm(target)
-    #gen_alg.evolve()
+    gen_alg.evolve()
 
     # save files
     # log data
