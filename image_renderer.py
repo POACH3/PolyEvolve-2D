@@ -46,3 +46,6 @@ class ImageRenderer:
             draw.polygon(polygon.vertices, fill=polygon.color)
 
         return image
+
+    def convert_image(self, image):
+        return image.convert("RGBA")
