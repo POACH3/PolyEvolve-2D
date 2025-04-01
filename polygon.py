@@ -8,7 +8,7 @@ the target image to be approximated).
 NOTES:
 For simplicity, initially the following will be fixed:
     - numbers of sides: 3
-    - opacity: 50%
+    - opacity: 30/255
     - colors: random
 
 """
@@ -33,7 +33,7 @@ class Polygon:
         self.vertices = []
 
         self.vertices = vertices if vertices else self.random_vertices()
-        self.color = color if color else self.set_color()
+        self.color = color if color else self.random_color()
 
     def random_vertices(self):
         """
@@ -59,13 +59,13 @@ class Polygon:
         point = (x, y)
         return point
 
-    def set_edges(self):
+    def order_vertices_cw(self):
         """
-        Connect all points with edges that don't cross.
+        Puts all the vertices in a clockwise order.
         """
         pass
 
-    def set_color(self):
+    def random_color(self):
         """
         Get random a random color.
         RGBA format is used with opacity fixed.
@@ -84,14 +84,40 @@ class Polygon:
         rgba = (red, green, blue, alpha)
         return rgba
 
-    def mutate(self):
+    def perturb_vertices(self):
         """
-        Modifies the Polygon points and color.
+        Modifies the Polygon vertices to locations within a
+        set distance (10% of the min dimension) of the original vertices.
         """
-        new_points = []
-        for i in range(self.num_vertices):
-            new_points.append(self.set_vertex())
-        self.vertices = new_points
+        perturb_radius = int(min(self.max_x, self.max_y) * .1)
+        rand_x = randint(-perturb_radius, perturb_radius)
+        rand_y = randint(-perturb_radius, perturb_radius)
 
-        new_color = self.set_color()
-        self.color = new_color
+        new_vertices = []
+        for i in range(self.num_vertices):
+            x, y = self.vertices[i]
+            new_vertex = (self.clamp(x + rand_x, 0, self.max_x),
+                          self.clamp(y + rand_y, 0, self.max_y))
+            new_vertices.append(new_vertex)
+        self.vertices = new_vertices
+
+    def perturb_color(self):
+        """
+        Modifies the Polygon color to a random one within a set distance.
+        """
+        perturb_radius = 10
+
+        r, g, b, a = self.color  # Unpack the existing RGBA tuple
+
+        new_r = self.clamp(r + randint(-perturb_radius, perturb_radius), 0, 255)
+        new_g = self.clamp(g + randint(-perturb_radius, perturb_radius), 0, 255)
+        new_b = self.clamp(b + randint(-perturb_radius, perturb_radius), 0, 255)
+
+        self.color = (new_r, new_g, new_b, a)
+
+    def clamp(self, value, min_value, max_value):
+        """
+        Clamp values to stay within a range.
+        """
+        clamped_value = max(min(value, max_value), min_value)
+        return clamped_value
