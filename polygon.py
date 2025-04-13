@@ -81,7 +81,7 @@ class Polygon:
         red = randint(0, 255)
         green = randint(0, 255)
         blue = randint(0, 255)
-        alpha = 30 # 255 is opaque
+        alpha = 60 # 255 is opaque
 
         rgba = (red, green, blue, alpha)
         return rgba
@@ -92,11 +92,12 @@ class Polygon:
         set distance (10% of the min dimension) of the original vertices.
         """
         perturb_radius = int(min(self.max_x, self.max_y) * .1)
-        rand_x = randint(-perturb_radius, perturb_radius)
-        rand_y = randint(-perturb_radius, perturb_radius)
 
         new_vertices = []
         for i in range(self.num_vertices):
+            rand_x = randint(-perturb_radius, perturb_radius)
+            rand_y = randint(-perturb_radius, perturb_radius)
+
             x, y = self.vertices[i]
             new_vertex = (self.clamp(x + rand_x, 0, self.max_x),
                           self.clamp(y + rand_y, 0, self.max_y))
