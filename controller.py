@@ -33,16 +33,37 @@ def plot(gen_alg):
     plt.show()
 
 if __name__ == "__main__":
+    """
+    Runs the genetic algorithm.
+    
+    Saves files and displays the fitness plot.
+    """
 
-    renderer = ImageRenderer()
-    target = renderer.load_image("./simplest_smoll.png")
-    #target = renderer.load_image("./simple_smoll.png")
-    #target = renderer.load_image("./majesticUnicorn_smoll.png")
+    METHOD = "V2"
 
-    gen_alg = GeneticAlgorithm(target)
-    gen_alg.evolve()
-    plot(gen_alg)
+    if METHOD == "V1":
+        from version_1 import GeneticAlgorithm, ImageRenderer, Population, Individual, Polygon
 
-    # save files
-    # log data
-    # display final image
+        renderer = ImageRenderer()
+        target = renderer.load_image("./simplest_smoll.png")
+        # target = renderer.load_image("./simple_smoll.png")
+        # target = renderer.load_image("./majesticUnicorn_smoll.png")
+
+        gen_alg = GeneticAlgorithm(target)
+        gen_alg.evolve()
+        plot(gen_alg)
+
+    elif METHOD == "V2":
+        from version_2 import GeneticAlgorithm, ImageRenderer
+
+        renderer = ImageRenderer()
+        target = renderer.load_image("./simplest_smoll.png")
+        # target = renderer.load_image("./simple_smoll.png")
+        # target = renderer.load_image("./majesticUnicorn_smoll.png")
+
+        gen_alg = GeneticAlgorithm(target)
+        gen_alg.evolve()
+        plot(gen_alg)
+
+    else:
+        raise ValueError("Unknown method")
