@@ -22,11 +22,11 @@ class GeneticAlgorithm:
         self.population_size = 100
         self.num_generations = 150
         self.num_genes = 5 # 50?
-        self.num_elites = 15 # 3 most fit Individuals copied to next generation
-        self.population_mutation_rate = .1 # percentage likelihood for an individual to be selected
-        self.genome_mutation_rate = .01 # percentage likelihood for a gene to be selected
+        self.num_elites = 30 # 15-25% of most fit Individuals copied to next generation
+        self.population_mutation_rate = .01 # 5-10% likelihood for an individual to be selected
+        self.genome_mutation_rate = .25 # 25% likelihood for a gene to be selected
 
-        self.target = target
+        self.target = target # the png provided
         self.target_size = target.size
 
         self.generations = [] # all generations containing all individuals
@@ -119,7 +119,6 @@ class GeneticAlgorithm:
 
         for population in range(self.num_generations):
             for individual in range(self.population_size):
-
                 # measure fitness and record
                 score = self.evaluate_fitness_mse(self.generations[population].individuals[individual])
                 self.generations[population].individuals[individual].set_fitness(score)
@@ -129,22 +128,10 @@ class GeneticAlgorithm:
             max_fit = max(fitnesses)
             min_fit = min(fitnesses)
             avg_fit = sum(fitnesses) / self.population_size
-
             self.xdata.append(population)
             self.max_fitness_data.append(max_fit)
             self.min_fitness_data.append(min_fit)
             self.avg_fitness_data.append(avg_fit)
-
-            '''
-            # update the plot
-            max_fit = self.generations[population].individuals[0].fitness
-            min_fit = self.generations[population].individuals[-1].fitness
-            total_fit = 0
-            for individual in range(self.population_size):
-                total_fit += self.generations[population].individuals[individual].fitness
-            avg_fit = total_fit / self.population_size
-            self.update_plot(population, max_fit, min_fit, avg_fit, ax, xdata, max_fitness_data, min_fitness_data, avg_fitness_data, max_line, min_line, avg_line)
-            '''
 
             # reproduce based off fitness scores
             self.generations.append(self.reproduce(self.generations[-1]))
@@ -153,8 +140,6 @@ class GeneticAlgorithm:
             self.mutate(self.generations[-1])
 
         self.create_plot()
-        #plt.ioff()
-        #plt.show()
 
     def evaluate_fitness_abs_diff(self, individual):
         """
@@ -207,13 +192,13 @@ class GeneticAlgorithm:
             individual (Individual): The candidate individual to be evaluated.
 
         Returns:
-            (int): The fitness score (lower is better).
+            (int): The fitness score (higher is better).
 
         """
-        total_error = 0
+        #total_error = 0
 
         width, height = individual.size
-        num_pixels = width * height
+        #num_pixels = width * height
 
         target_rgb = self.target.convert('RGBA')
 
@@ -221,6 +206,14 @@ class GeneticAlgorithm:
         individual_image = renderer.create_image(individual)
         individual_rgb = renderer.convert_image(individual_image)
 
+        target_arr = np.array(target_rgb).astype(np.int32)
+        individual_arr = np.array(individual_rgb).astype(np.int32)
+
+        squared_error = (target_arr[:,:,:3] - individual_arr[:,:,:3]) ** 2
+        mse = np.mean(np.sum(squared_error, axis=2))
+        assert mse >= 0, "MSE must be non-negative"
+
+        '''
         for x in range(self.target_size[0]):
             for y in range(self.target_size[1]):
                 target_pixel = target_rgb.getpixel((x,y))
@@ -237,7 +230,12 @@ class GeneticAlgorithm:
                 total_error += pixel_error
 
         average_pixel_error = total_error / num_pixels
-        fitness_score = 1 / (average_pixel_error + 1e-6)
+        #fitness_score = 1 / (average_pixel_error + 1e-6) # small variance introduces noise
+        fitness_score = -average_pixel_error
+        '''
+
+        max_possible_mse = 195075
+        fitness_score = max_possible_mse - mse
         #print(f"{fitness_score}\n")                                                                        #FIXME
         return fitness_score
 
