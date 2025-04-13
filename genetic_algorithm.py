@@ -5,12 +5,10 @@ Genetic Algorithm implementation on images where semi-transparent colored polygo
 
 NOTES:
     Fitness function is MSE to start, but eventually will account for curved color space.
-    Consider converting to NumPy array for fitness measurement.
 
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 from random import randint
 from image_renderer import ImageRenderer
 from individual import Individual
@@ -31,83 +29,6 @@ class GeneticAlgorithm:
 
         self.generations = [] # all generations containing all individuals
 
-        # add other metrics (individual fitness, average fitness, etc)
-        self.xdata, self.max_fitness_data, self.min_fitness_data, self.avg_fitness_data = [], [], [], []
-
-    def setup_plot(self):
-        """
-        Sets up the interactive plot for displaying fitness over generations.
-
-        Returns:
-            fig (Figure): The matplotlib figure.
-            ax (Axes): The axes for plotting.
-            xdata (list): Empty list for generation indices.
-            max_fitness_data (list): Empty list for maximum fitness per generation.
-            avg_fitness_data (list): Empty list for average fitness per generation.
-            max_line (Line2D): The line object for maximum fitness.
-            min_line (Line2D): The line object for minimum fitness.
-            avg_line (Line2D): The line object for average fitness.
-        """
-        plt.ion()  # Enable interactive mode
-        fig, ax = plt.subplots()
-        ax.set_xlabel("Generation")
-        ax.set_ylabel("Fitness")
-        ax.set_title("Fitness Over Generations")
-
-        # Initialize data lists
-        xdata = []
-        max_fitness_data = []
-        min_fitness_data = []
-        avg_fitness_data = []
-
-        # Create line objects for max and average fitness
-        max_line, = ax.plot(xdata, max_fitness_data, "r-", label="Max Fitness")
-        min_line, = ax.plot(xdata, min_fitness_data, "g-", label="Min Fitness")
-        avg_line, = ax.plot(xdata, avg_fitness_data, "b-", label="Average Fitness")
-        ax.legend()
-
-        return fig, ax, xdata, max_fitness_data, min_fitness_data, avg_fitness_data, max_line, min_line, avg_line
-
-    def update_plot(self, generation, max_fit, min_fit, avg_fit, ax, xdata, max_fitness_data, min_fitness_data, avg_fitness_data, max_line, min_line, avg_line):
-        """
-        Updates the plot with new fitness data for a given generation.
-
-        Args:
-            generation (int): The current generation number.
-            max_fit (float): The maximum fitness for the generation.
-            avg_fit (float): The average fitness for the generation.
-            ax (Axes): The plot axes.
-            xdata, max_fitness_data, avg_fitness_data (list): Data lists to update.
-            max_line, avg_line (Line2D): Line objects for the plot.
-        """
-        # Append new values
-        xdata.append(generation)
-        max_fitness_data.append(max_fit)
-        min_fitness_data.append(min_fit)
-        avg_fitness_data.append(avg_fit)
-
-        # Update line data
-        max_line.set_data(xdata, max_fitness_data)
-        min_line.set_data(xdata, min_fitness_data)
-        avg_line.set_data(xdata, avg_fitness_data)
-
-        # Rescale the plot to accommodate new data
-        ax.relim()
-        ax.autoscale_view()
-
-        plt.draw()  # Redraw the current figure
-        plt.pause(0.01)  # Pause briefly to allow the GUI to update
-
-    def create_plot(self):
-        fig, ax = plt.subplots()
-        ax.set_xlabel("Generation")
-        ax.set_ylabel("Fitness")
-        ax.set_title("Fitness Over Generations")
-        ax.plot(self.xdata, self.max_fitness_data, "r-", label="Max Fitness")
-        ax.plot(self.xdata, self.min_fitness_data, "g-", label="Min Fitness")
-        ax.plot(self.xdata, self.avg_fitness_data, "b-", label="Avg Fitness")
-        ax.legend()
-        plt.show()
 
     def evolve(self):
         """
@@ -115,14 +36,13 @@ class GeneticAlgorithm:
         """
         self.generations.append(Population(individual_size=self.target_size, population_size=self.population_size)) # random initial generation
 
-        #fig, ax, xdata, max_fitness_data, min_fitness_data, avg_fitness_data, max_line, min_line, avg_line = self.setup_plot()
-
         for population in range(self.num_generations):
             for individual in range(self.population_size):
                 # measure fitness and record
                 score = self.evaluate_fitness_mse(self.generations[population].individuals[individual])
                 self.generations[population].individuals[individual].set_fitness(score)
 
+            '''
             # record generation stats
             fitnesses = [ind.fitness for ind in self.generations[population].individuals]
             max_fit = max(fitnesses)
@@ -132,6 +52,7 @@ class GeneticAlgorithm:
             self.max_fitness_data.append(max_fit)
             self.min_fitness_data.append(min_fit)
             self.avg_fitness_data.append(avg_fit)
+            '''
 
             # reproduce based off fitness scores
             self.generations.append(self.reproduce(self.generations[-1]))
@@ -139,7 +60,7 @@ class GeneticAlgorithm:
             # mutate
             self.mutate(self.generations[-1])
 
-        self.create_plot()
+
 
     def evaluate_fitness_abs_diff(self, individual):
         """
