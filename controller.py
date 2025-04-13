@@ -2,53 +2,46 @@
 Orchestrates the genetic algorithm, supporting future MVC structure.
 """
 
+import matplotlib.pyplot as plt
 from genetic_algorithm import GeneticAlgorithm
 from image_renderer import ImageRenderer
-from individual import Individual
 
+def plot(gen_alg):
 
-class Controller:
-    def __init__(self, target_path, population_size, num_generations):
-        # Initialize parameters
-        self.target_path = target_path
-        self.population_size = population_size
-        self.num_generations = num_generations
+    # add other metrics (individual fitness, average fitness, etc)
+    x_axis, max_fitness_data, min_fitness_data, avg_fitness_data = [], [], [], []
 
-        # Example: load target image and initialize population
-        self.target_image = self.load_target_image(target_path)
-        self.population = self.initialize_population(population_size)
+    for gen in range(gen_alg.num_generations):
+        for individual in range(gen_alg.population_size):
+            fitnesses = [individual.fitness for individual in gen_alg.generations[gen].individuals]
+            max_fit = max(fitnesses)
+            min_fit = min(fitnesses)
+            avg_fit = sum(fitnesses) / gen_alg.population_size
+            x_axis.append(gen)
+            max_fitness_data.append(max_fit)
+            min_fitness_data.append(min_fit)
+            avg_fitness_data.append(avg_fit)
 
-    def load_target_image(self, path):
-        # Placeholder: implement image loading logic (e.g., using Pillow)
-        print(f"Loading target image from: {path}")
-        return None  # Replace with actual image object
-
-    def run(self):
-        # Main evolution loop
-        for gen in range(self.generations):
-            print(f"Generation {gen}")
-            self.evaluate_population()
-            self.evolve_population()
-            # Optionally: Save best individual image, log stats, etc.
-        print("Evolution complete")
-
+    fig, ax = plt.subplots()
+    ax.set_xlabel("Generation")
+    ax.set_ylabel("Fitness")
+    ax.set_title("Fitness Over Generations")
+    ax.plot(x_axis, max_fitness_data, "r-", label="Max Fitness")
+    ax.plot(x_axis, min_fitness_data, "g-", label="Min Fitness")
+    ax.plot(x_axis, avg_fitness_data, "b-", label="Avg Fitness")
+    ax.legend()
+    plt.show()
 
 if __name__ == "__main__":
 
-    #controller = Controller("target.png", population_size=50, num_generations=1000)
-    #controller.run()
-
     renderer = ImageRenderer()
-    target = renderer.load_image("./majesticUnicorn_smoll.png")
-    #height, width = target.size
-    #renderer.show_image(target)
-
-    #individual = Individual((500,500), num_genes=10)
-    #test_im = renderer.create_image(individual)
-    #renderer.save_image(test_im, "./polyevolve_images/test.png")
+    target = renderer.load_image("./simplest_smoll.png")
+    #target = renderer.load_image("./simple_smoll.png")
+    #target = renderer.load_image("./majesticUnicorn_smoll.png")
 
     gen_alg = GeneticAlgorithm(target)
     gen_alg.evolve()
+    plot(gen_alg)
 
     # save files
     # log data
