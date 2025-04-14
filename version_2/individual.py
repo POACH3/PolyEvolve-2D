@@ -17,7 +17,7 @@ Gene mutation options:
 """
 
 from random import randint
-from polygon import Polygon
+from version_2.gene import Gene
 
 class Individual:
     """
@@ -37,22 +37,21 @@ class Individual:
         """
         rand_genome = []
 
-        for i in range(self.num_genes):
-            polygon = Polygon(self.size)
+        for _ in range(self.num_genes):
+            polygon = Gene(self.size)
             rand_genome.append(polygon)
 
         return rand_genome
 
 
-    def mutate_gene(self, gene_mutation_rate):
+    def mutate(self, gene_mutation_rate):
         """
-        Modifies a random gene (Polygon) in the genome (Individual) by perturbing
-        the vertices and color of a Polygon to a new value within a set radius.
+        Modifies random polygons (Genes) in accordance with the mutation rate.
         """
         num_mutations = int(self.num_genes * gene_mutation_rate)
         gene_mutate_indices = []
 
-        for i in range(num_mutations):
+        for _ in range(num_mutations):
             gene_idx = randint(0, self.num_genes - 1)
 
             while gene_idx in gene_mutate_indices:
@@ -60,13 +59,24 @@ class Individual:
             gene_mutate_indices.append(gene_idx)
 
             gene = self.genome[gene_idx]
-            mutate_type = randint(0, 2)
-            if mutate_type == 0:
-                gene.perturb_vertices()
-            elif mutate_type == 1:
-                gene.add_vertex() # should scale with the number of vertices in the polygon
-            elif mutate_type == 2:
-                gene.perturb_color()
+            #assert isinstance(gene, Gene), f"Expected Gene but got {type(gene)}"
+            self.mutate_gene(gene)
+
+
+    def mutate_gene(self, gene):
+        """
+        Modifies a random gene (Polygon) in the genome (Individual) by perturbing
+        the vertices and color of a Polygon to a new value within a set radius.
+        """
+        #assert isinstance(gene, Gene), f"Expected Gene but got {type(gene)}"
+
+        mutate_type = randint(0, 2)
+        if mutate_type == 0:
+            gene.perturb_vertices()
+        elif mutate_type == 1:
+            gene.add_vertex()  # should scale with the number of vertices in the polygon
+        elif mutate_type == 2:
+            gene.perturb_color()
 
     def replace_gene(self):
         """
@@ -75,7 +85,7 @@ class Individual:
         gene_index = randint(0, self.num_genes - 1)
 
         self.genome.pop(gene_index)
-        self.genome.insert(gene_index, Polygon(self.size))
+        self.genome.insert(gene_index, Gene(self.size))
 
     def set_fitness(self, fitness_score):
         self.fitness = fitness_score
