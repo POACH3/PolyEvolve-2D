@@ -4,7 +4,9 @@ genetic_algorithm.py
 Genetic Algorithm implementation on images where semi-transparent colored polygons are the genes.
 
 NOTES:
-    Fitness function is MSE to start, but eventually will account for curved color space.
+    - fitness function is MSE to start, but eventually will account for curved color space
+    - start with 0 genes, only add a gene if fitness slope is less than some value
+    - OR initialize all genes to background color
 
 """
 
@@ -18,17 +20,15 @@ from version_2.generation import Generation
 class GeneticAlgorithm:
 
     def __init__(self, target):
-        self.population_size = 100
-        self.num_generations = 150
-        self.num_genes = 50 # 50?
-        self.num_elites = 30 # 15-25% of most fit Individuals copied to next generation
-        self.population_mutation_rate = .01 # 5-10% likelihood for an individual to be selected
+        self.population_size = 50
+        self.num_generations = 2000
+        self.num_genes = 10 # 50?
         self.genome_mutation_rate = .25 # 25% likelihood for a gene to be selected
 
         self.target = target # the png provided
         self.target_size = target.size
 
-        self.elite_individual = None # random initialization
+        self.elite_individual = None # random initialization later
         self.generations = [] # all generations containing all individuals
 
 
@@ -41,7 +41,7 @@ class GeneticAlgorithm:
         self.elite_individual = Individual(self.target_size, num_genes=self.num_genes)
 
         for gen in range(self.num_generations):
-            print(f"Generation {gen}")
+            print(f"Generation {gen+1}")
             # generate replacement candidates
             self.generations.append(self.reproduce())
 
