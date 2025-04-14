@@ -11,7 +11,7 @@ For simplicity, initially the following will be fixed:
 Possibly merge class into genetic_algorithm.py and represent as a list.
 """
 
-from individual import Individual
+from version_2.individual import Individual
 
 class Generation:
     """
