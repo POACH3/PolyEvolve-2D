@@ -186,12 +186,12 @@ class Gene:
         """
         Wrap values around space to stay within a range.
         """
-        wrapped_value = -1
-
         if value < min_value:
             #wrapped_value = max_value - abs(value - min_value)
             wrapped_value = max_value + (value - min_value)
+            return wrapped_value
         elif value > max_value:
             wrapped_value = min_value + (value - max_value)
-
-        return wrapped_value
+            return wrapped_value
+        else:
+            return value
