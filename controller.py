@@ -3,8 +3,6 @@ Orchestrates the genetic algorithm, supporting future MVC structure.
 """
 
 import matplotlib.pyplot as plt
-from genetic_algorithm import GeneticAlgorithm
-from image_renderer import ImageRenderer
 
 def plot(gen_alg):
 
@@ -12,8 +10,8 @@ def plot(gen_alg):
     x_axis, max_fitness_data, min_fitness_data, avg_fitness_data = [], [], [], []
 
     for gen in range(gen_alg.num_generations):
-        for individual in range(gen_alg.population_size):
-            fitnesses = [individual.fitness for individual in gen_alg.generations[gen].individuals]
+        for ind in range(gen_alg.population_size):
+            fitnesses = [ind.fitness for ind in gen_alg.generations[gen].population]
             max_fit = max(fitnesses)
             min_fit = min(fitnesses)
             avg_fit = sum(fitnesses) / gen_alg.population_size
@@ -54,12 +52,13 @@ if __name__ == "__main__":
         plot(gen_alg)
 
     elif METHOD == "V2":
-        from version_2 import GeneticAlgorithm, ImageRenderer
+        from version_2.genetic_algorithm import GeneticAlgorithm
+        from version_2.image_renderer import ImageRenderer
 
         renderer = ImageRenderer()
-        target = renderer.load_image("./simplest_smoll.png")
-        # target = renderer.load_image("./simple_smoll.png")
-        # target = renderer.load_image("./majesticUnicorn_smoll.png")
+        #target = renderer.load_image("./simplest_smoll.png")
+        #target = renderer.load_image("./simple_smoll.png")
+        target = renderer.load_image("./majesticUnicorn_smoll.png")
 
         gen_alg = GeneticAlgorithm(target)
         gen_alg.evolve()
