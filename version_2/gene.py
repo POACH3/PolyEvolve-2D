@@ -1,9 +1,9 @@
 """
-polygon.py
+gene.py
 
-A Polygon represents a single gene. The points are randomly
-selected within the constraints provided (the dimensions of
-the target image to be approximated).
+A Gene represents a single gene. It is a polygon where
+the points are randomly selected within the
+constraints provided (the dimensions of the target image to be approximated).
 
 NOTES:
 
@@ -13,7 +13,7 @@ from random import randint
 from shapely.geometry import Polygon
 import math
 
-class Polygon:
+class Gene:
     """
     Represents a polygon defined by a set of points and a color.
     """
@@ -32,15 +32,14 @@ class Polygon:
         self.vertices = vertices if vertices else self.random_points()
         self.color = color if color else self.random_color()
 
-        self.sp = Polygon(self.vertices)
+        #self.sp
 
     def random_points(self):
         """
         Generate a set of random points. They must form a simple polygon.
         """
-        points = []
-
         while True:
+            points = []
             for i in range(self.num_vertices):
                 points.append(self.random_point())
 
@@ -69,24 +68,27 @@ class Polygon:
         Add a vertex to the polygon by taking the midpoint of two random
         adjacent vertices and perturbing it.
         """
-        while True:
+        attempts = 0
+        #while True:
+        while attempts < 100:
             rand = randint(0, self.num_vertices - 2) # a little janky
             v1 = self.vertices[rand]
             v2 = self.vertices[rand+1]
 
-            new_vertex = (max(v1[0] - v2[0], v2[0] - v1[0]), max(v1[1] - v2[1], v2[1] - v1[1]))
+            new_vertex = ((v1[0] + v2[0]) // 2, (v1[1] + v2[1]) // 2)
             perturb_radius = int(min(self.max_x, self.max_y) * .05)
-            self.perturb_vertex(new_vertex, perturb_radius)
+            new_vertex_perturbed = self.perturb_vertex(new_vertex, perturb_radius)
 
-            new_vertices = self.vertices
-            new_vertices.append(new_vertex)
+            new_vertices = self.vertices.copy()
+            new_vertices.append(new_vertex_perturbed)
 
             if self.valid_shape(new_vertices):
+                self.num_vertices += 1
+                self.vertices = self.order_cw(new_vertices)
+                #self.sp = Polygon(self.vertices)
                 break
 
-        self.order_cw(new_vertices)
-        self.vertices = new_vertices
-        self.sp = Polygon(self.vertices)
+            attempts += 1
 
     def valid_shape(self, vertices):
         """
@@ -103,7 +105,9 @@ class Polygon:
         """
         Puts all the points in a clockwise order.
         """
-        cx, cy = self.sp.centroid
+        sp = Polygon(points)
+        cx = sp.centroid.x
+        cy = sp.centroid.y
 
         def angle_about_centroid(point):
             px, py = point
