@@ -46,7 +46,8 @@ if __name__ == "__main__":
         METHOD = "V2"
 
         if METHOD == "V1":
-            from version_1 import GeneticAlgorithm, ImageRenderer, Population, Individual, Polygon
+            from version_1.genetic_algorithm import GeneticAlgorithm
+            from version_1.image_renderer import ImageRenderer
 
             renderer = ImageRenderer()
             target = renderer.load_image("./simplest_smoll.png")
