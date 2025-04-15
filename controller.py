@@ -2,6 +2,8 @@
 Orchestrates the genetic algorithm, supporting future MVC structure.
 """
 
+import subprocess
+import os
 import matplotlib.pyplot as plt
 
 def plot(gen_alg):
@@ -37,32 +39,40 @@ if __name__ == "__main__":
     Saves files and displays the fitness plot.
     """
 
-    METHOD = "V2"
+    caffeinate = subprocess.Popen(['caffeinate', '-i'])
+    os.system("open -a ScreenSaverEngine")
 
-    if METHOD == "V1":
-        from version_1 import GeneticAlgorithm, ImageRenderer, Population, Individual, Polygon
+    try:
+        METHOD = "V2"
 
-        renderer = ImageRenderer()
-        target = renderer.load_image("./simplest_smoll.png")
-        # target = renderer.load_image("./simple_smoll.png")
-        # target = renderer.load_image("./majesticUnicorn_smoll.png")
+        if METHOD == "V1":
+            from version_1 import GeneticAlgorithm, ImageRenderer, Population, Individual, Polygon
 
-        gen_alg = GeneticAlgorithm(target)
-        gen_alg.evolve()
-        plot(gen_alg)
+            renderer = ImageRenderer()
+            target = renderer.load_image("./simplest_smoll.png")
+            # target = renderer.load_image("./simple_smoll.png")
+            # target = renderer.load_image("./majesticUnicorn_smoll.png")
 
-    elif METHOD == "V2":
-        from version_2.genetic_algorithm import GeneticAlgorithm
-        from version_2.image_renderer import ImageRenderer
+            gen_alg = GeneticAlgorithm(target)
+            gen_alg.evolve()
+            plot(gen_alg)
 
-        renderer = ImageRenderer()
-        #target = renderer.load_image("./simplest_smoll.png")
-        #target = renderer.load_image("./simple_smoll.png")
-        target = renderer.load_image("./majesticUnicorn_smoll.png")
+        elif METHOD == "V2":
+            from version_2.genetic_algorithm import GeneticAlgorithm
+            from version_2.image_renderer import ImageRenderer
 
-        gen_alg = GeneticAlgorithm(target)
-        gen_alg.evolve()
-        plot(gen_alg)
+            renderer = ImageRenderer()
+            #target = renderer.load_image("./simplest_smoll.png")
+            #target = renderer.load_image("./simple_smoll.png")
+            target = renderer.load_image("./majesticUnicorn_smoll.png")
 
-    else:
-        raise ValueError("Unknown method")
+            gen_alg = GeneticAlgorithm(target)
+            gen_alg.evolve()
+            plot(gen_alg)
+
+        else:
+            raise ValueError("Unknown method")
+
+    finally:
+        caffeinate.terminate()
+        os.system("pmset displaysleepnow")
